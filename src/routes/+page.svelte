@@ -21,7 +21,14 @@
     // Stores
     const mode = writable<Mode>(getLS("mode", "clock"));
     const now = writable(new Date());
-    const countdownSeconds = writable(getLS("countdownSeconds", 10));
+
+    // Get the initial countdown value from localStorage
+    const savedCountdownValue = getLS("countdownSeconds", 10);
+    // This will hold the currently displayed countdown value (which can change during countdown)
+    const countdownSeconds = writable(savedCountdownValue);
+    // This will hold the last user-entered value, for resetting
+    let lastUserCountdownInput = $state(savedCountdownValue);
+
     const stopwatchMilliseconds = writable(0);
 
     const stopwatchRunning = writable(false);
@@ -35,8 +42,20 @@
     let audioPlayer: HTMLAudioElement;
 
     // Persist mode and countdownSeconds to localStorage
+    // Note: We'll persist the value in countdownSeconds store, which reflects the current state
     $effect(() => setLS("mode", $mode));
     $effect(() => setLS("countdownSeconds", $countdownSeconds));
+
+
+    // Effect to update lastUserCountdownInput whenever the countdownSeconds store changes
+    // due to user input (via bind:value)
+    $effect(() => {
+        if ($mode === "countdown" && !$countdownRunning) {
+            // Only update lastUserCountdownInput if the countdown is not running,
+            // meaning the change came from the user input field
+            lastUserCountdownInput = $countdownSeconds;
+        }
+    });
 
     // Clock
     function startClock() {
@@ -90,7 +109,8 @@
 
     function resetCountdown() {
         clearInterval(countdownInterval);
-        countdownSeconds.set(10);
+        // Reset to the last value the user input, or the initial saved value
+        countdownSeconds.set(lastUserCountdownInput);
         countdownRunning.set(false);
     }
 
@@ -186,7 +206,7 @@
         <button onclick={startCountdown} disabled={$countdownSeconds === 0 || $countdownRunning}>
             Start
         </button>
-        <button onclick={resetCountdown} disabled={!$countdownRunning}>
+        <button onclick={resetCountdown} disabled={!$countdownRunning && $countdownSeconds === lastUserCountdownInput}>
             Reset
         </button>
     {:else if $mode === "stopwatch"}
@@ -201,9 +221,11 @@
     {/if}
 </main>
 
-<audio bind:this={audioPlayer} src="/src/audio/ding.mp3" preload="auto"></audio>
+<audio bind:this={audioPlayer} src="/audio/ding.mp3" preload="auto"></audio>
 
 <style>
+    /* ... (your existing styles remain the same) ... */
+
     :global(body) {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: #1e1e2f;
