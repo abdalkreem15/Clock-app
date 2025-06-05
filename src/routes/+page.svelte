@@ -221,11 +221,9 @@
     {/if}
 </main>
 
-<audio bind:this={audioPlayer} src="/audio/ding.mp3" preload="auto"></audio>
+<audio bind:this={audioPlayer} src="/src/audio/ding.mp3" preload="auto"></audio>
 
 <style>
-    /* ... (your existing styles remain the same) ... */
-
     :global(body) {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: #1e1e2f;
