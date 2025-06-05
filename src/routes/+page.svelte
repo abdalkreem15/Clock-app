@@ -142,21 +142,21 @@
             disabled={$countdownRunning}
         />
         <p class="time-display">{formatTime($countdownSeconds)}</p>
-        <button on:click={startCountdown} disabled={$countdownSeconds === 0 || $countdownRunning}>
+        <button onclick={startCountdown} disabled={$countdownSeconds === 0 || $countdownRunning}>
             Start
         </button>
-        <button on:click={resetCountdown} disabled={!$countdownRunning}>
+        <button onclick={resetCountdown} disabled={!$countdownRunning}>
             Reset
         </button>
     {:else if $mode === "stopwatch"}
         <h2>Stopwatch</h2>
         <p class="time-display">{formatStopwatch($stopwatchMilliseconds)}</p>
         {#if $stopwatchRunning}
-            <button on:click={pauseStopwatch}>Pause</button>
+            <button onclick={pauseStopwatch}>Pause</button>
         {:else}
-            <button on:click={startStopwatch}>Start</button>
+            <button onclick={startStopwatch}>Start</button>
         {/if}
-        <button on:click={resetStopwatch}>Reset</button>
+        <button onclick={resetStopwatch}>Reset</button>
     {/if}
 </main>
 
