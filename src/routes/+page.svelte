@@ -3,10 +3,26 @@
 
     type Mode = "clock" | "countdown" | "stopwatch";
 
-    const mode = writable<Mode>("clock");
+    // Local storage helpers
+    function getLS<T>(key: string, fallback: T): T {
+        try {
+            const val = localStorage.getItem(key);
+            return val !== null ? JSON.parse(val) : fallback;
+        } catch {
+            return fallback;
+        }
+    }
+    function setLS<T>(key: string, value: T) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch {}
+    }
+
+    // Stores
+    const mode = writable<Mode>(getLS("mode", "clock"));
     const now = writable(new Date());
-    const countdownSeconds = writable(10);
-    const stopwatchMilliseconds = writable(0); // in ms
+    const countdownSeconds = writable(getLS("countdownSeconds", 10));
+    const stopwatchMilliseconds = writable(0);
 
     const stopwatchRunning = writable(false);
     const countdownRunning = writable(false);
@@ -15,6 +31,14 @@
     let stopwatchInterval: ReturnType<typeof setInterval>;
     let countdownInterval: ReturnType<typeof setInterval>;
 
+    // Reference to the audio element
+    let audioPlayer: HTMLAudioElement;
+
+    // Persist mode and countdownSeconds to localStorage
+    $effect(() => setLS("mode", $mode));
+    $effect(() => setLS("countdownSeconds", $countdownSeconds));
+
+    // Clock
     function startClock() {
         stopAllIntervals();
         interval = setInterval(() => {
@@ -22,6 +46,7 @@
         }, 1000);
     }
 
+    // Stopwatch
     function startStopwatch() {
         stopAllIntervals();
         stopwatchRunning.set(true);
@@ -29,7 +54,7 @@
 
         stopwatchInterval = setInterval(() => {
             stopwatchMilliseconds.set(Date.now() - startTime);
-        }, 10); // update every 10ms for smooth ms display
+        }, 10);
     }
 
     function pauseStopwatch() {
@@ -43,6 +68,7 @@
         stopwatchMilliseconds.set(0);
     }
 
+    // Countdown
     function startCountdown() {
         stopAllIntervals();
         countdownRunning.set(true);
@@ -52,6 +78,10 @@
                 else {
                     clearInterval(countdownInterval);
                     countdownRunning.set(false);
+                    // Play sound when countdown reaches zero
+                    if (audioPlayer) {
+                        audioPlayer.play();
+                    }
                     return 0;
                 }
             });
@@ -72,13 +102,16 @@
         countdownRunning.set(false);
     }
 
-    $: if ($mode === "clock") {
-        startClock();
-    } else {
-        stopAllIntervals();
-    }
+    // React to mode changes
+    $effect(() => {
+        if ($mode === "clock") {
+            startClock();
+        } else {
+            stopAllIntervals();
+        }
+    });
 
-    // Format time helper for stopwatch with ms: HH:MM:SS.ms (two digits for ms)
+    // Format helpers
     function formatStopwatch(ms: number) {
         const totalSeconds = Math.floor(ms / 1000);
         const h = Math.floor(totalSeconds / 3600)
@@ -94,7 +127,6 @@
         return `${h}:${m}:${s}.${milliseconds}`;
     }
 
-    // Format time helper function (HH:MM:SS) for countdown
     function formatTime(seconds: number) {
         const h = Math.floor(seconds / 3600)
             .toString()
@@ -111,18 +143,27 @@
     <h1>Clock App</h1>
 
     <div class="mode-select">
-        <label>
-            <input type="radio" bind:group={$mode} value="clock" />
+        <button
+            onclick={() => mode.set("clock")}
+            class:active={$mode === "clock"}
+            disabled={$mode === "clock"}
+        >
             Clock
-        </label>
-        <label>
-            <input type="radio" bind:group={$mode} value="countdown" />
+        </button>
+        <button
+            onclick={() => mode.set("countdown")}
+            class:active={$mode === "countdown"}
+            disabled={$mode === "countdown"}
+        >
             Countdown
-        </label>
-        <label>
-            <input type="radio" bind:group={$mode} value="stopwatch" />
+        </button>
+        <button
+            onclick={() => mode.set("stopwatch")}
+            class:active={$mode === "stopwatch"}
+            disabled={$mode === "stopwatch"}
+        >
             Stopwatch
-        </label>
+        </button>
     </div>
 </header>
 
@@ -160,6 +201,8 @@
     {/if}
 </main>
 
+<audio bind:this={audioPlayer} src="/src/audio/ding.mp3" preload="auto"></audio>
+
 <style>
     :global(body) {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -194,18 +237,6 @@
         display: flex;
         justify-content: center;
         gap: 2rem;
-    }
-
-    label {
-        font-weight: 600;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    input[type="radio"] {
-        margin-right: 0.5rem;
-        accent-color: #4caf50;
-        cursor: pointer;
     }
 
     main {
