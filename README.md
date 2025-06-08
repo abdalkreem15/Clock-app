@@ -1,38 +1,49 @@
-# sv
+# Clock App
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This is a simple yet versatile web application built with Svelte, offering three essential time-keeping modes: a **real-time clock**, a **countdown timer**, and a **stopwatch**. It's designed to be intuitive and visually pleasing across all devices.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+* **Clock Mode**: Displays the current time, updated every second.
 
-```bash
-# create a new project in the current directory
-npx sv create
+* **Countdown Timer Mode**: Set a duration in seconds, start the countdown, and get an audible alert when it reaches zero. The last entered value is remembered for easy resets.
 
-# create a new project in my-app
-npx sv create my-app
-```
+* **Stopwatch Mode**: Start, pause, and reset a stopwatch that tracks time with millisecond precision.
 
-## Developing
+* **Persistence**: Your last selected mode and countdown value are saved in your browser's local storage, so your settings are remembered when you revisit the app.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+* **Responsive Design**: The app's layout and appearance adapt seamlessly to different screen sizes, ensuring a great user experience on mobile phones, tablets, and desktops.
 
-```bash
-npm run dev
+## How to Use
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+1. **Switch Modes**: Use the buttons in the header (`Clock`, `Countdown`, `Stopwatch`) to toggle between the different time-keeping functions.
 
-## Building
+2. **Clock**: Just watch the time go by!
 
-To create a production version of your app:
+3. **Countdown**:
 
-```bash
-npm run build
-```
+   * Enter your desired countdown duration (in seconds) into the input field.
 
-You can preview the production build with `npm run preview`.
+   * Click the **Start** button to begin.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+   * Once it hits zero, a "ding" sound will play.
+
+   * Click **Reset** to return to your last entered value.
+
+4. **Stopwatch**:
+
+   * Click **Start** to begin timing.
+
+   * Click **Pause** to temporarily stop the timer.
+
+   * Click **Start** again to resume.
+
+   * Click **Reset** to clear the stopwatch and set it back to zero.
+
+## Technologies Used
+
+* **Svelte 5**: For building the reactive user interface.
+
+* **TypeScript**: For enhanced code quality and type safety.
+
+* **CSS**: For custom styling and responsive design.

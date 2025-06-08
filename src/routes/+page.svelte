@@ -3,7 +3,7 @@
 
     type Mode = "clock" | "countdown" | "stopwatch";
 
-    // Local storage helpers
+    // Saves and loads settings, so your preferences stick around.
     function getLS<T>(key: string, fallback: T): T {
         try {
             const val = localStorage.getItem(key);
@@ -12,21 +12,21 @@
             return fallback;
         }
     }
+
     function setLS<T>(key: string, value: T) {
         try {
             localStorage.setItem(key, JSON.stringify(value));
         } catch {}
     }
 
-    // Stores
+    // Our main app state.
     const mode = writable<Mode>(getLS("mode", "clock"));
     const now = writable(new Date());
 
-    // Get the initial countdown value from localStorage
     const savedCountdownValue = getLS("countdownSeconds", 10);
-    // This will hold the currently displayed countdown value (which can change during countdown)
+    // This is the countdown number you see on screen.
     const countdownSeconds = writable(savedCountdownValue);
-    // This will hold the last user-entered value, for resetting
+    // We keep track of your last input for easy resetting.
     let lastUserCountdownInput = $state(savedCountdownValue);
 
     const stopwatchMilliseconds = writable(0);
@@ -38,34 +38,29 @@
     let stopwatchInterval: ReturnType<typeof setInterval>;
     let countdownInterval: ReturnType<typeof setInterval>;
 
-    // Reference to the audio element
+    // We'll use this to play a sound.
     let audioPlayer: HTMLAudioElement;
 
-    // Persist mode and countdownSeconds to localStorage
-    // Note: We'll persist the value in countdownSeconds store, which reflects the current state
+    // Save mode and countdown progress automatically.
     $effect(() => setLS("mode", $mode));
     $effect(() => setLS("countdownSeconds", $countdownSeconds));
 
-
-    // Effect to update lastUserCountdownInput whenever the countdownSeconds store changes
-    // due to user input (via bind:value)
+    // Remember your last countdown input.
     $effect(() => {
         if ($mode === "countdown" && !$countdownRunning) {
-            // Only update lastUserCountdownInput if the countdown is not running,
-            // meaning the change came from the user input field
             lastUserCountdownInput = $countdownSeconds;
         }
     });
 
-    // Clock
+    // --- Clock Functions ---
     function startClock() {
-        stopAllIntervals();
+        stopAllIntervals(); // Stop anything else running
         interval = setInterval(() => {
             now.set(new Date());
         }, 1000);
     }
 
-    // Stopwatch
+    // --- Stopwatch Functions ---
     function startStopwatch() {
         stopAllIntervals();
         stopwatchRunning.set(true);
@@ -87,7 +82,7 @@
         stopwatchMilliseconds.set(0);
     }
 
-    // Countdown
+    // --- Countdown Functions ---
     function startCountdown() {
         stopAllIntervals();
         countdownRunning.set(true);
@@ -97,7 +92,7 @@
                 else {
                     clearInterval(countdownInterval);
                     countdownRunning.set(false);
-                    // Play sound when countdown reaches zero
+                    // Time's up! Play a sound.
                     if (audioPlayer) {
                         audioPlayer.play();
                     }
@@ -109,11 +104,12 @@
 
     function resetCountdown() {
         clearInterval(countdownInterval);
-        // Reset to the last value the user input, or the initial saved value
+        // Go back to the last value you typed in.
         countdownSeconds.set(lastUserCountdownInput);
         countdownRunning.set(false);
     }
 
+    // Stops all timers.
     function stopAllIntervals() {
         clearInterval(interval);
         clearInterval(stopwatchInterval);
@@ -122,7 +118,7 @@
         countdownRunning.set(false);
     }
 
-    // React to mode changes
+    // When you switch modes, we handle what starts/stops.
     $effect(() => {
         if ($mode === "clock") {
             startClock();
@@ -131,29 +127,19 @@
         }
     });
 
-    // Format helpers
+    // --- Formatting ---
     function formatStopwatch(ms: number) {
         const totalSeconds = Math.floor(ms / 1000);
-        const h = Math.floor(totalSeconds / 3600)
-            .toString()
-            .padStart(2, "0");
-        const m = Math.floor((totalSeconds % 3600) / 60)
-            .toString()
-            .padStart(2, "0");
+        const h = Math.floor(totalSeconds / 3600).toString().padStart(2, "0");
+        const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, "0");
         const s = (totalSeconds % 60).toString().padStart(2, "0");
-        const milliseconds = Math.floor((ms % 1000) / 10)
-            .toString()
-            .padStart(2, "0");
+        const milliseconds = Math.floor((ms % 1000) / 10).toString().padStart(2, "0");
         return `${h}:${m}:${s}.${milliseconds}`;
     }
 
     function formatTime(seconds: number) {
-        const h = Math.floor(seconds / 3600)
-            .toString()
-            .padStart(2, "0");
-        const m = Math.floor((seconds % 3600) / 60)
-            .toString()
-            .padStart(2, "0");
+        const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
         const s = (seconds % 60).toString().padStart(2, "0");
         return `${h}:${m}:${s}`;
     }
@@ -323,5 +309,73 @@
         background-color: #777777;
         cursor: not-allowed;
         box-shadow: none;
+    }
+
+    @media (max-width: 600px) {
+        header {
+            padding: 1rem 0.5rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        .time-display {
+            font-size: 2.2rem;
+        }
+
+        .mode-select {
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 0 0.5rem;
+        }
+
+        button {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            margin: 0 0.3rem 0.8rem 0.3rem;
+        }
+    }
+
+    @media (max-width: 500px) {
+        h1 {
+            font-size: 1.6rem;
+        }
+
+        .time-display {
+            font-size: 2rem;
+        }
+
+        .mode-select {
+            gap: 0.5rem;
+        }
+
+        button {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+
+    @media (min-width: 768px) {
+        main {
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 3rem;
+        }
+
+        .time-display {
+            font-size: 4rem;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+        }
+
+        button {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+        }
     }
 </style>
