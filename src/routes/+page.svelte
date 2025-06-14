@@ -207,7 +207,7 @@
     {/if}
 </main>
 
-<audio bind:this={audioPlayer} src="/src/audio/ding.mp3" preload="auto"></audio>
+<audio bind:this={audioPlayer} src="/audio/ding.mp3" preload="auto"></audio>
 
 <style>
     :global(body) {
