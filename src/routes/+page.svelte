@@ -204,10 +204,7 @@
         {#if $stopwatchRunning}
             <button onclick={pauseStopwatch}>Pause</button>
         {:else}
-            <button onclick={startStopwatch}
-            onkeydown={(e) => {
-                if (e.key === "Enter") startStopwatch();
-            }}>Start</button>
+            <button onclick={startStopwatch}>Start</button>
         {/if}
         <button onclick={resetStopwatch}>Reset</button>
     {/if}
