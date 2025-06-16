@@ -187,6 +187,9 @@
             class="countdown-input"
             aria-label="Set countdown duration in seconds"
             disabled={$countdownRunning}
+            onkeydown={(e) => {
+                if (e.key === "Enter") startCountdown();
+            }}
         />
         <p class="time-display">{formatTime($countdownSeconds)}</p>
         <button onclick={startCountdown} disabled={$countdownSeconds === 0 || $countdownRunning}>
@@ -201,7 +204,10 @@
         {#if $stopwatchRunning}
             <button onclick={pauseStopwatch}>Pause</button>
         {:else}
-            <button onclick={startStopwatch}>Start</button>
+            <button onclick={startStopwatch}
+            onkeydown={(e) => {
+                if (e.key === "Enter") startStopwatch();
+            }}>Start</button>
         {/if}
         <button onclick={resetStopwatch}>Reset</button>
     {/if}
